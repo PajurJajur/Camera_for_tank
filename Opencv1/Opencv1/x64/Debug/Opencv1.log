@@ -1,0 +1,5 @@
+﻿  opencvdetekcjakoloru.cpp
+C:\Users\48609\Documents\Programowanko\Opencv1\Opencv1\opencvdetekcjakoloru.cpp(86,22): warning C4244: "inicjowanie": konwersja z "double" do "int", możliwa utrata danych
+C:\Users\48609\Documents\Programowanko\Opencv1\Opencv1\opencvdetekcjakoloru.cpp(87,22): warning C4244: "inicjowanie": konwersja z "double" do "int", możliwa utrata danych
+C:\Users\48609\Documents\Programowanko\Opencv1\Opencv1\opencvdetekcjakoloru.cpp(93,68): warning C4390: ";": znaleziono kontrolowaną pustą instrukcję; czy to było zamierzone?
+  Opencv1.vcxproj -> C:\Users\48609\Documents\Programowanko\Opencv1\x64\Debug\Opencv1.exe
