@@ -10,23 +10,6 @@ int z = 0;
 int t = 0;
 
 
-String getValue(String data, char separator, int index) {
-  int found = 0;
-  int strIndex[] = { 0, -1 };
-  int maxIndex = data.length() - 1;
-
-  for (int i = 0; i <= maxIndex && found <= index; i++) {
-    if (data.charAt(i) == separator || i == maxIndex) {
-      found++;
-      strIndex[0] = strIndex[1] + 1;
-      strIndex[1] = (i == maxIndex) ? i + 1 : i;
-    }
-  }
-
-  return data.substring(strIndex[0], strIndex[1]);
-}
-
-
 
 void setup() {
   // put your setup code here, to run once:
@@ -46,11 +29,15 @@ void loop() {
   
   if(Serial.available())
   {
-    String odczyt = Serial.readStringUntil('\n');
-    int pos1 = getValue(odczyt, ',', 0).toInt();
-    int pos2 = getValue(odczyt, ',', 1).toInt();
-    y= map(pos1,0,640,0,255);
-    t= map(pos2,0,480,0,255);
+     String data = Serial.readStringUntil('\n');
+        int commaIndex = data.indexOf(',');
+
+        if (commaIndex > 0) {
+            int value1 = data.substring(0, commaIndex).toInt();
+            int value2 = data.substring(commaIndex + 1).toInt();
+
+    y= map(value1,0,1920,0,180);
+    t= map(value2,0,1080,0,180);
     /*
     if(odczyt == "A")
       {
@@ -63,7 +50,7 @@ void loop() {
       }
   */
  
-  }
+  }}
   if(y>255){
     y=255;
   }
