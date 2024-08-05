@@ -19,11 +19,15 @@ const int SERVO2_MIN_ANGLE = 180; // Min kąt serwa 2
 const int SERVO2_MAX_ANGLE = 90;  // Max kąt serwa 2
 
 // Zakresy PWM dla serw
-const int PWM_MIN = 50;  // Minimalna wartość PWM odpowiadająca 1 ms
+const int PWM_MIN = 20;  // Minimalna wartość PWM odpowiadająca 1 ms
 const int PWM_MAX = 250; // Maksymalna wartość PWM odpowiadająca 2 ms
 
 const int CHANGE_THRESHOLD = 50; // Próg zmiany 
-const int SMOOTHING_FACTOR = 8; // Współczynnik wygładzania PWM
+const int SMOOTHING_FACTOR = 10; // Współczynnik wygładzania PWM
+
+const float KP = 0.2;            // Współczynnik proporcjonalny
+const float KI = 0.04;           // Współczynnik całkujący
+const float KD = 0.02;           // Współczynnik derivacyjny
 
 int map1(int x, int in_min, int in_max, int out_min, int out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -93,6 +97,12 @@ int main() {
     int prevPWM_X = angleToPWM(prevAngleX, SERVO1_MIN_ANGLE, SERVO1_MAX_ANGLE, 50, 250);
     int prevPWM_Y = angleToPWM(prevAngleY, SERVO2_MIN_ANGLE, SERVO2_MAX_ANGLE, 250, 150);
     
+    int prevErrorX = 0;
+    int prevErrorY = 0;
+    float integralX = 0;
+    float integralY = 0;
+
+    
     pwmWrite(SERVO_PIN_X, 150);
     pwmWrite(SERVO_PIN_Y, 175);
     
@@ -130,8 +140,23 @@ int main() {
 
             float distance = calculateDistance(posX, posY, centerX, centerY);
             
-            int angleX = positionToAngle(posX, centerX, SERVO1_MIN_ANGLE, SERVO1_MAX_ANGLE);
-            int angleY = positionToAngle(posY, centerY, SERVO2_MIN_ANGLE, SERVO2_MAX_ANGLE);
+            
+            
+            int errorX = centerX - posX;
+            int errorY = centerY - posY;
+            
+            integralX += errorX;
+            integralY += errorY;
+            
+            int dErrorX = errorX - prevErrorX;
+            int dErrorY = errorY - prevErrorY;
+
+            int angleX = KP * errorX + KI * integralX + KD * dErrorX;
+            int angleY = KP * errorY + KI * integralY + KD * dErrorY;
+            
+            
+            //int angleX = positionToAngle(posX, centerX, SERVO1_MIN_ANGLE, SERVO1_MAX_ANGLE);
+            //int angleY = positionToAngle(posY, centerY, SERVO2_MIN_ANGLE, SERVO2_MAX_ANGLE);
 
 
             int currentPWM_X = angleToPWM(angleX, SERVO1_MIN_ANGLE, SERVO1_MAX_ANGLE, 250, 50);
@@ -161,6 +186,8 @@ int main() {
                 prevAngleY = angleY;
                 prevPWM_X = smoothPWM_X;
                 prevPWM_Y = smoothPWM_Y;
+                prevErrorX = errorX;
+                prevErrorY = errorY;
 
                 // Dodanie opóźnienia po zmianie wartości PWM
                 usleep(20000); // 20 ms
