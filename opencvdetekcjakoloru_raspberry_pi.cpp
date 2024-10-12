@@ -29,6 +29,13 @@ const float KP = 0.2;            // Współczynnik proporcjonalny
 const float KI = 0.04;           // Współczynnik całkujący
 const float KD = 0.02;           // Współczynnik derivacyjny
 
+const float KP_Y = 0.4;            // Współczynnik proporcjonalny
+const float KI_Y = 0.2;           // Współczynnik całkujący
+const float KD_Y= 0.02;           // Współczynnik derivacyjny
+
+const float INTEGRAL_LIMIT_X = 500;
+const float INTEGRAL_LIMIT_Y = 500;
+
 int map1(int x, int in_min, int in_max, int out_min, int out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -48,7 +55,15 @@ int angleToPWM(int angle, int minAngle, int maxAngle, int minPWM, int maxPWM) {
 int smoothPWM(int currentPWM, int previousPWM, int factor) {
     return previousPWM + (currentPWM - previousPWM) / factor;
 }
-
+//Funkcja do ustawienia ograniczenia całki
+float limitIntegral(float integral, float limit) {
+    if (integral > limit) {
+        return limit;
+    } else if (integral < -limit) {
+        return -limit;
+    }
+    return integral;
+}
 
 float calculateDistance(int x1, int y1, int x2, int y2) {
     return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
@@ -105,7 +120,7 @@ int main() {
     
     pwmWrite(SERVO_PIN_X, 150);
     pwmWrite(SERVO_PIN_Y, 175);
-    
+    usleep(2000000); // 20 ms
     while (true) {
         Cam.read(image);
         if (image.empty()) {
@@ -148,11 +163,14 @@ int main() {
             integralX += errorX;
             integralY += errorY;
             
+            integralX = limitIntegral(integralX, INTEGRAL_LIMIT_X); // Ograniczenie całki dla osi X
+            integralY = limitIntegral(integralY, INTEGRAL_LIMIT_Y); // Ograniczenie całki dla osi Y
+            
             int dErrorX = errorX - prevErrorX;
             int dErrorY = errorY - prevErrorY;
 
             int angleX = KP * errorX + KI * integralX + KD * dErrorX;
-            int angleY = KP * errorY + KI * integralY + KD * dErrorY;
+            int angleY = KP_Y * errorY + KI_Y * integralY + KD_Y * dErrorY;
             
             
             //int angleX = positionToAngle(posX, centerX, SERVO1_MIN_ANGLE, SERVO1_MAX_ANGLE);
